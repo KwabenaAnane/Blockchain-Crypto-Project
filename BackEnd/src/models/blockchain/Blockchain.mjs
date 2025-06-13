@@ -7,7 +7,6 @@ import { REWARD_ADDRESS, MINING_REWARD } from '../../utilities/config.mjs';
 export default class Blockchain {
   constructor() {
     this.chain = [Block.genesis()];
-    // this.chain.push(Block.genesis())
   }
 
   addBlock({ data }) {

@@ -4,7 +4,7 @@ import {
   getWalletInfo,
   listAllTransactions,
   mineTransactions,
-} from '../controllers/transaction-controller.mjs';
+} from '../controllers/transaction-controllers.mjs';
 
 const router = express.Router();
 

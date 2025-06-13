@@ -1,8 +1,7 @@
 import { WebSocket, WebSocketServer } from 'ws';
-import { SOCKET_PORT } from './utilities/config.mjs';
-import {MEMBER_NODES} from './utilities/config.mjs';
 
-// const SOCKET_PORT = process.env.SOCKET_PORT || 3001;
+
+const SOCKET_PORT = process.env.SOCKET_PORT || 5010 || 5011 || 5012;
 const NODES = process.env.MEMBER_NODES
   ? process.env.MEMBER_NODES.split(',')
   : [];
@@ -49,7 +48,7 @@ export default class Network {
     };
     socket.send(JSON.stringify(message));
   }
-
+  
   messageHandler(socket) {
     socket.on('message', (message) => {
       const parsed = JSON.parse(message);
