@@ -2,7 +2,7 @@ import { transactionPool, wallet, server, blockChain } from '../server.mjs';
 import Miner from '../models/miner/Miner.mjs';
 import Wallet from '../models/wallet/Wallet.mjs';
 
-export const addTransaction = (req, res) => {
+export const addTransaction = async (req, res) => {
   const { amount, recipient } = req.body;
   let transaction = transactionPool.transactionExists({
     address: wallet.publicKey,
@@ -20,7 +20,7 @@ export const addTransaction = (req, res) => {
       .json({ success: false, statusCode: 400, error: error.message });
   }
 
-  transactionPool.addTransaction(transaction);
+  await transactionPool.addTransaction(transaction);
   server.broadcastTransaction(transaction);
 
   res.status(201).json({ success: true, statusCode: 201, data: transaction });
@@ -42,12 +42,19 @@ export const getWalletInfo = (req, res) => {
     });
 };
 
-export const listAllTransactions = (req, res) => {
-  res.status(200).json({
-    success: true,
-    statusCode: 200,
-    data: transactionPool.transactionMap,
-  });
+export const listAllTransactions = async (req, res) => {
+  try {
+    const TransactionModel = (await import('../models/wallet/TransactionModel.mjs')).default;
+    const transactions = await TransactionModel.find().lean();
+
+    res.status(200).json({
+      success: true,
+      statusCode: 200,
+      data: transactions,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
 };
 
 export const mineTransactions = (req, res) => {

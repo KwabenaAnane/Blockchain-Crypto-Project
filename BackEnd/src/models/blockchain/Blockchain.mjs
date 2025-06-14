@@ -3,18 +3,44 @@ import Block from './Block.mjs';
 import Transaction from '../wallet/Transaction.mjs';
 import Wallet from '../wallet/Wallet.mjs';
 import { REWARD_ADDRESS, MINING_REWARD } from '../../utilities/config.mjs';
+import BlockModel from '../schemas/blockModel.mjs';
+import TransactionModel from '../schemas/transactionModel.mjs';
 
 export default class Blockchain {
   constructor() {
     this.chain = [Block.genesis()];
   }
 
-  addBlock({ data }) {
+ async addBlock({ data }) {
+    
+    const savedTransactions = await Promise.all(
+      data.map(tx => new TransactionModel(tx).save())
+    );
+
+    // Extract their MongoDB _id references
+    const transactionIds = savedTransactions.map(tx => tx._id);
+
+    // Mine the block with transaction IDs in data
     const addedBlock = Block.mineBlock({
       previousBlock: this.chain.at(-1),
-      data,
+      data: transactionIds,
     });
+
     this.chain.push(addedBlock);
+
+    // Save the block itself in DB
+    await new BlockModel(addedBlock).save();
+  }
+
+  async loadChainFromDB() {
+    const blocks = await BlockModel.find()
+      .sort({ timestamp: 1 })
+      .populate('data') // populates data field with full transactions
+      .lean();
+
+    if (blocks.length > 0) {
+      this.chain = blocks;
+    }
   }
 
   // replaceChain tar in en lista av block...
@@ -28,8 +54,6 @@ export default class Blockchain {
     this.chain = chain;
   }
 
-  // Validerar inkommande lista av transaktioner mot aktuell instans och dess
-  // lista av transaktioner...
   validateTransactionData({ chain }) {
     for (let i = 1; i < chain.length; i++) {
       const block = chain[i];

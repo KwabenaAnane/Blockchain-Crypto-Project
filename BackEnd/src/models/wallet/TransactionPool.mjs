@@ -1,14 +1,21 @@
 import Transaction from './Transaction.mjs';
+import TransactionModel from '../schemas/transactionModel.mjs';
 
 export default class TransactionPool {
   constructor() {
     this.transactionMap = {};
   }
 
-  addTransaction(transaction) {
+  async addTransaction(transaction) {
     this.transactionMap[transaction.id] = transaction;
-  }
 
+    // Upsert transaction in MongoDB
+    await TransactionModel.findOneAndUpdate(
+      { id: transaction.id },
+      transaction,
+      { upsert: true, new: true }
+    );
+  }
   clearBlockTransactions({ chain }) {
     for (let i = 1; i < chain.length; i++) {
       const block = chain[i];
@@ -25,7 +32,7 @@ export default class TransactionPool {
     this.transactionMap = {};
   }
 
-  replaceMap(transactionMap) {
+ async replaceMap(transactionMap) {
     this.transactionMap = transactionMap;
   }
 

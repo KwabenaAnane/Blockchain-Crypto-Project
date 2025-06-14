@@ -36,7 +36,7 @@ export default class Transaction {
     });
   }
 
-  update({ sender, recipient, amount }) {
+  update({ sender, recipient, amount, network = null }) {
     if (amount > this.outputMap[sender.publicKey])
       throw new Error('Not enough funds!');
 
@@ -50,6 +50,11 @@ export default class Transaction {
       this.outputMap[sender.publicKey] - amount;
 
     this.input = this.createInput({ sender, outputMap: this.outputMap });
+
+      // Broadcast updated transaction if WebSocket is available
+    if (network) {
+      const websocket = network.broadcastTransaction(this);
+    }
   }
 
   createOutputMap({ sender, recipient, amount }) {
