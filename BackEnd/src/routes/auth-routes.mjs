@@ -1,36 +1,27 @@
 import express from 'express';
-import {
-  register,
-  loginUser,
-  protect,
-  authorize
-} from '../controllers/auth-controller.mjs';
+import { loginUser, register } from '../controllers/auth-controller.mjs';
+
 
 const router = express.Router();
 
-//  Public Auth Routes
-router.post('/register', register);
+// POST /api/auth/login - User login
 router.post('/login', loginUser);
 
-//  Authenticated Route: Get current user info
-router.get('/me', protect, (req, res) => {
+// POST /api/auth/register - User registration
+router.post('/register', register);
+
+router.post('/logout', (req, res) => {
+  res.cookie('jwt', '', {
+    expires: new Date(0),
+    httpOnly: true,
+    secure: true
+  });
+  
   res.status(200).json({
-    message: 'Authenticated user retrieved successfully',
-    user: req.user
+    success: true,
+    statusCode: 200,
+    message: 'Logged out successfully'
   });
 });
-
-// Role-Based Access Example: Only 'admin' or 'sales' can access
-router.get(
-  '/secure-data',
-  protect,
-  authorize('admin', 'sales'),
-  (req, res) => {
-    res.status(200).json({
-      message: 'You are authorized to access this data',
-      user: req.user
-    });
-  }
-);
 
 export default router;

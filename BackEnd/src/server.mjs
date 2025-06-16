@@ -1,6 +1,8 @@
 import { app } from './app.mjs';
 import blockchainRoutes from './routes/blockchain-routes.mjs';
 import transactionRoutes from './routes/transaction-routes.mjs';
+import authRoutes from './routes/auth-routes.mjs';
+import userRoutes from './routes/user-routes.mjs';
 import Blockchain from './models/blockchain/Blockchain.mjs';
 import TransactionPool from './models/wallet/TransactionPool.mjs';
 import Wallet from './models/wallet/Wallet.mjs';
@@ -27,6 +29,9 @@ transactionPool.network = server;
 
 app.use('/api/blocks', blockchainRoutes);
 app.use('/api/wallet', transactionRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+
 
 
 const synchronize = async () => {

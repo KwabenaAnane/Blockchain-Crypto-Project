@@ -1,40 +1,7 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/schemas/UserModel.mjs';
 import AppError from '../utilities/appError.mjs';
-import catchErrorAsync from '../utilities/catchErrorAsync.mjs';
-
-//  Create a token
-const createToken = (user) => {
-  return jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN }
-  );
-};
-
-// 🔓 Register new user
-export const register = async (req, res) => {
-  try {
-    const { firstName, lastName, email, password, role } = req.body;
-
-    const newUser = await User.create({ firstName, lastName, email, password, role });
-    const token = createToken(newUser);
-
-    res.status(201).json({
-      status: 'success',
-      token,
-      user: {
-        id: newUser._id,
-        email: newUser.email,
-        role: newUser.role,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-      },
-    });
-  } catch (err) {
-    res.status(400).json({ status: 'fail', message: err.message });
-  }
-};
+import {catchErrorAsync} from '../utilities/catchErrorAsync.mjs';
 
 //  Login user
 export const loginUser = async (req, res, next) => {
@@ -52,7 +19,7 @@ export const loginUser = async (req, res, next) => {
   const token = createToken(user);
 
   res.cookie('jwt', token, {
-    expiresIn: new Date(Date.now() * 24 * 60 * 60 * 1000),
+    expiresIn: new Date(Date.now() + 24 * 60 * 60 * 1000),
     secure: true,
     httpOnly: true,
   });
@@ -61,15 +28,6 @@ export const loginUser = async (req, res, next) => {
     .status(200)
     .json({ success: true, statusCode: 200, data: { token: token } });
 };
-
-
-const verifyToken = (token) =>
-  new Promise((resolve, reject) => {
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-      if (err) reject(err);
-      else resolve(decoded);
-    });
-  });
 
 //  Protect route middleware
 export const protect = catchErrorAsync(async (req, res, next) => {
@@ -109,3 +67,51 @@ export const authorize = (...roles) => {
     next();
   };
 };
+
+
+//  Create a token
+const createToken = (user) => {
+  return jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES}
+  );
+};
+
+// Register new user
+export const register = catchErrorAsync(async (req, res) => {
+  try {
+    const { firstName, lastName, email, password, role } = req.body;
+
+    const newUser = await User.create({ firstName, lastName, email, password, role });
+    const token = createToken(newUser);
+
+    res.status(201).json({
+      status: 'success',
+      token,
+      user: {
+        id: newUser._id,
+        email: newUser.email,
+        role: newUser.role,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({ status: 'fail', message: err.message });
+  }
+});
+
+
+
+const verifyToken = (token) =>
+  new Promise((resolve, reject) => {
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) reject(err);
+      else resolve(decoded);
+    });
+  });
+
+
+
+
