@@ -17,10 +17,8 @@ export default class Blockchain {
       data.map(tx => new TransactionModel(tx).save())
     );
 
-    // Extract their MongoDB _id references
     const transactionIds = savedTransactions.map(tx => tx._id);
 
-    // Mine the block with transaction IDs in data
     const addedBlock = Block.mineBlock({
       previousBlock: this.chain.at(-1),
       data: transactionIds,
@@ -28,7 +26,6 @@ export default class Blockchain {
 
     this.chain.push(addedBlock);
 
-    // Save the block itself in DB
     await new BlockModel(addedBlock).save();
   }
 
@@ -43,7 +40,6 @@ export default class Blockchain {
     }
   }
 
-  // replaceChain tar in en lista av block...
   replaceChain(chain, callback) {
     if (chain.length <= this.chain.length) return;
 
