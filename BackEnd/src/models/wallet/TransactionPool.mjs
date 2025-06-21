@@ -9,7 +9,6 @@ export default class TransactionPool {
   async addTransaction(transaction) {
     this.transactionMap[transaction.id] = transaction;
 
-    // Upsert transaction in MongoDB
     await TransactionModel.findOneAndUpdate(
       { id: transaction.id },
       transaction,

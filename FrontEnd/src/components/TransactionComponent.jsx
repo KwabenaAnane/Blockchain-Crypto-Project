@@ -1,4 +1,3 @@
-// TransactionComponent.jsx
 import React from 'react';
 
 const TransactionComponent = ({

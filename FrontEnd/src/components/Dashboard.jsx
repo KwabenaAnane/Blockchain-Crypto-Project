@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Wallet, Blocks, Activity } from 'lucide-react';
 

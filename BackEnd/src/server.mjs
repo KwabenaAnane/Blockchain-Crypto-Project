@@ -47,8 +47,6 @@ app.use('/api/wallet', transactionRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 
-
-
 const synchronize = async () => {
   const ROOT_NODE = `http://localhost:${DEFAULT_PORT}`;
 
@@ -93,7 +91,7 @@ const startServer = async () => {
 
     // Handle unhandled promise rejections
     process.on('unhandledRejection', (err) => {
-      console.error('UNHANDLED REJECTION! 💥 Shutting down...');
+      console.error('UNHANDLED REJECTION! Shutting down...');
       console.error(err);
       httpServer.close(() => {
         process.exit(1);
@@ -104,7 +102,7 @@ const startServer = async () => {
     process.on('SIGTERM', () => {
       console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
       httpServer.close(() => {
-        console.log('💥 Process terminated!');
+        console.log('Process terminated!');
       });
     });
   } catch (err) {

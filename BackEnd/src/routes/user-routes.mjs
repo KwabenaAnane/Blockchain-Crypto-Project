@@ -9,6 +9,6 @@ router.use(protect);
 router
   .route('/')
   .get(listUsers)
-  .post(authorize('admin'), addUser); //admin to add users
+  .post(authorize('admin'), addUser); 
 
 export default router;

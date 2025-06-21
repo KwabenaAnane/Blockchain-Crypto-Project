@@ -21,8 +21,8 @@ router.post('/store-token', async (req, res) => {
 });
 
 router.post('/logout', async (req, res) => {
-  const id = req.body.id;
-  const user = await User.findById(id);
+  const email = req.body.email;
+  const user = await User.findOne({ email });
   if (user) {
     user.token = null;
     await user.save();

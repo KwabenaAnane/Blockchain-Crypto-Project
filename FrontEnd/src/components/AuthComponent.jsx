@@ -1,4 +1,3 @@
-// AuthComponent.jsx
 import React from 'react';
 import { Blocks } from 'lucide-react';
 
