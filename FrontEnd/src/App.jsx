@@ -1,16 +1,6 @@
-// App.jsx (Updated with debug and tab fix)
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import {
-  LogOut,
-  Blocks,
-  Send,
-  Wallet,
-  Pickaxe,
-  Activity,
-  AlertCircle,
-  CheckCircle,
-} from 'lucide-react';
+import { LogOut, AlertCircle, CheckCircle } from 'lucide-react';
 import AuthComponent from './components/AuthComponent';
 import Dashboard from './components/Dashboard';
 import TransactionComponent from './components/TransactionComponent';
@@ -52,7 +42,7 @@ const App = () => {
 
   useEffect(() => {
     if (success) {
-      const timer = setTimeout(() => setSuccess(''), 10000);
+      const timer = setTimeout(() => setSuccess(''), 3000);
       return () => clearTimeout(timer);
     }
   }, [success]);
@@ -99,9 +89,14 @@ const App = () => {
     try {
       const res = await axios.post('/auth/login', loginForm);
       const { token, user } = res.data.data;
+      // Store the token in MongoDB
+      await axios.post('/auth/store-token', { token, user });
       setToken(token);
       setUser(user);
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      // Store the token in local storage
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
       setLoginForm({ email: '', password: '' });
       showSuccess('Login successful!');
       setActiveTab('dashboard');
@@ -112,7 +107,6 @@ const App = () => {
     }
     setLoading(false);
   };
-
   const handleRegister = async () => {
     const { firstName, lastName, email, password, role } = registerForm;
     if (!firstName || !lastName || !email || !password)
@@ -203,6 +197,17 @@ const App = () => {
     );
   };
 
+  const handleLogout = async () => {
+    try {
+      await axios.post('/auth/logout', { id: user.id });
+      setUser(null);
+      setToken(null);
+      delete axios.defaults.headers.common['Authorization'];
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
+
   if (!user) {
     return (
       <>
@@ -233,12 +238,9 @@ const App = () => {
           <h1 className='text-xl font-bold text-gray-800'>Blockchain App</h1>
           <div className='flex items-center gap-4'>
             <span className='text-sm text-gray-700'>{user.email}</span>
+            
             <button
-              onClick={() => {
-                setUser(null);
-                setToken(null);
-                delete axios.defaults.headers.common['Authorization'];
-              }}
+              onClick={handleLogout}
               className='text-red-600 hover:text-red-800 flex items-center gap-1'>
               <LogOut className='w-4 h-4' /> Logout
             </button>

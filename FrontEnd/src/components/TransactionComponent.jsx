@@ -48,7 +48,7 @@ const TransactionComponent = ({
           </button>
         </div>
         <p className='text-sm text-gray-500 mt-2'>
-          Available Balance: {walletInfo.balance} BC
+          Available Balance: {walletInfo.balance} BTC
         </p>
       </form>
 
@@ -64,7 +64,7 @@ const TransactionComponent = ({
         <ul className='space-y-2'>
           {transactions.map((tx, idx) => (
             <li key={idx} className='border-b pb-2 text-sm'>
-              {tx.input?.amount} BC from {tx.input?.address?.substring(0, 12)}
+              {tx.input?.amount} BTC from {tx.input?.address?.substring(0, 12)}
               ...
             </li>
           ))}

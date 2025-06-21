@@ -1,26 +1,43 @@
 import express from 'express';
 import { loginUser, register } from '../controllers/auth-controller.mjs';
-
+import User from '../models/schemas/UserModel.mjs';
 
 const router = express.Router();
 
-// POST /api/auth/login - User login
 router.post('/login', loginUser);
 
-// POST /api/auth/register - User registration
 router.post('/register', register);
 
-router.post('/logout', (req, res) => {
+router.post('/store-token', async (req, res) => {
+  const { token, user } = req.body;
+  const existingUser = await User.findOne({ email: user.email });
+  if (existingUser) {
+    existingUser.token = token;
+    await existingUser.save();
+    res.send({ message: 'Token stored successfully' });
+  } else {
+    res.status(404).send({ message: 'User not found' });
+  }
+});
+
+router.post('/logout', async (req, res) => {
+  const id = req.body.id;
+  const user = await User.findById(id);
+  if (user) {
+    user.token = null;
+    await user.save();
+  }
+  res.clearCookie('jwt');
   res.cookie('jwt', '', {
     expires: new Date(0),
     httpOnly: true,
-    secure: true
+    secure: true,
   });
-  
+
   res.status(200).json({
     success: true,
     statusCode: 200,
-    message: 'Logged out successfully'
+    message: 'Logged out successfully',
   });
 });
 
