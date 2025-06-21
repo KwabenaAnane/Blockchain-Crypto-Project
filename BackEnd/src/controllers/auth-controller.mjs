@@ -1,14 +1,16 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/schemas/UserModel.mjs';
 import AppError from '../utilities/appError.mjs';
-import {catchErrorAsync} from '../utilities/catchErrorAsync.mjs';
+import { catchErrorAsync } from '../utilities/catchErrorAsync.mjs';
 
 //  Login user
 export const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ message: 'Please provide email and password' });
+    return res
+      .status(400)
+      .json({ message: 'Please provide email and password' });
   }
 
   const user = await User.findOne({ email }).select('+password');
@@ -24,9 +26,20 @@ export const loginUser = async (req, res, next) => {
     httpOnly: true,
   });
 
-  res
-    .status(200)
-    .json({ success: true, statusCode: 200, data: { token: token } });
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    data: {
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+    },
+  });
 };
 
 //  Protect route middleware
@@ -42,7 +55,7 @@ export const protect = catchErrorAsync(async (req, res, next) => {
 
   if (!token) {
     return next(
-      new AppError('Du måste vara inloggad för att nå resursen', 401)
+      new AppError('You are not logged in! Please log in to get access', 401)
     );
   }
 
@@ -50,7 +63,7 @@ export const protect = catchErrorAsync(async (req, res, next) => {
 
   const user = await User.findById(decoded.id).select('-password');
   if (!user) {
-    return next(new AppError('Användaren existerar inte längre', 401));
+    return next(new AppError('User does not exist', 401));
   }
 
   req.user = user;
@@ -68,14 +81,11 @@ export const authorize = (...roles) => {
   };
 };
 
-
 //  Create a token
 const createToken = (user) => {
-  return jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES}
-  );
+  return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES,
+  });
 };
 
 // Register new user
@@ -83,7 +93,13 @@ export const register = catchErrorAsync(async (req, res) => {
   try {
     const { firstName, lastName, email, password, role } = req.body;
 
-    const newUser = await User.create({ firstName, lastName, email, password, role });
+    const newUser = await User.create({
+      firstName,
+      lastName,
+      email,
+      password,
+      role,
+    });
     const token = createToken(newUser);
 
     res.status(201).json({
@@ -102,8 +118,6 @@ export const register = catchErrorAsync(async (req, res) => {
   }
 });
 
-
-
 const verifyToken = (token) =>
   new Promise((resolve, reject) => {
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
@@ -111,7 +125,3 @@ const verifyToken = (token) =>
       else resolve(decoded);
     });
   });
-
-
-
-

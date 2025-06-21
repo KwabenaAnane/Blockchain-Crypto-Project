@@ -7,6 +7,21 @@ import Blockchain from './models/blockchain/Blockchain.mjs';
 import TransactionPool from './models/wallet/TransactionPool.mjs';
 import Wallet from './models/wallet/Wallet.mjs';
 import Network from './network.mjs';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Load environment variables
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, '..', 'config', 'config.env') });
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+  console.error(err.name, err.message);
+  process.exit(1);
+});
 
 
 const DEFAULT_PORT = 3000;
@@ -60,15 +75,46 @@ if (process.env.GENERATE_NODE_PORT === 'true') {
 
 const PORT = process.env.PORT || NODE_PORT || DEFAULT_PORT;
 
-app.listen(PORT, () => {
-  console.log(
-    `HTTP server running on port ${PORT} in ${process.env.NODE_ENV} mode`
-  );
+const startServer = async () => {
+  try {
+    // Start the HTTP server
+    const httpServer = app.listen(PORT, () => {
+      console.log(`✅ Server running on http://localhost:${PORT} in ${process.env.NODE_ENV} mode`);
+      
+      if (PORT !== DEFAULT_PORT) {
+        synchronize().catch(err => {
+          console.error('Error during synchronization:', err);
+        });
+      }
+      
+      server.listen();
+      console.log('✅ WebSocket server started');
+    });
 
-  if (PORT !== DEFAULT_PORT) {
-    synchronize();
+    // Handle unhandled promise rejections
+    process.on('unhandledRejection', (err) => {
+      console.error('UNHANDLED REJECTION! 💥 Shutting down...');
+      console.error(err);
+      httpServer.close(() => {
+        process.exit(1);
+      });
+    });
+
+    // Handle SIGTERM for graceful shutdown
+    process.on('SIGTERM', () => {
+      console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
+      httpServer.close(() => {
+        console.log('💥 Process terminated!');
+      });
+    });
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
   }
+};
 
-
-  server.listen();
+// Start the server
+startServer().catch(err => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
 });
