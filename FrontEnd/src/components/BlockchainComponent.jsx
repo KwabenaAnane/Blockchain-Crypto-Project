@@ -3,7 +3,7 @@ import { Pickaxe } from 'lucide-react';
 
 const BlockchainComponent = ({ blocks, mineBlock, loading }) => {
   return (
-    <div className='space-y-6'>
+    <div className='space-y-6 bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900'>
       <div className='flex justify-between items-center'>
         <h3 className='text-lg font-bold'>Blockchain</h3>
         <button
